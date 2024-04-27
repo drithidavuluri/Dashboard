@@ -81,30 +81,9 @@ country_youtube=load_data("country_youtube.csv")
 country_insta=load_data("country_insta.csv")
 
 
-# Sidebar for tab selection
-selected_tab = st.sidebar.radio("Choose a tab", ["Instagram Data", "YouTube Data", "Comparison"])
+selected_tab = st.sidebar.radio("Choose a tab", ["YouTube Data", "Instagram Data", "Comparison"])
 
-if selected_tab == "Instagram Data":
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        names = instagram_df['instagram name'].dropna()
-        followers = instagram_df['Followers'].dropna()
-        frequencies = dict(zip(names, followers))
-        st.set_option('deprecation.showPyplotGlobalUse', False)
-        generate_wordcloud(frequencies)
-        st.pyplot()
-    
-    with col2:
-        fig2 = px.scatter(instagram_df, x='Authentic engagement', y='Engagement avg',
-                          size='Followers', color='Audience country(mostly)', title="Engagement by Country", height=300)
-        st.plotly_chart(fig2, use_container_width=True)
-    
-    with st.container():
-        fig = px.histogram(instagram_df, x='Followers', title="Distribution of Instagram Followers", height=300, range_x=[0, 100000000])
-        st.plotly_chart(fig, use_container_width=True)
-
-elif selected_tab == "YouTube Data":
+if selected_tab == "YouTube Data":
     col1, col2 = st.columns([2, 3])
     
     with col1:
@@ -128,6 +107,26 @@ elif selected_tab == "YouTube Data":
     with st.container():
         fig3 = px.histogram(filtered_data, x='Subscribers', title="Distribution of YouTube Subscribers", height=300, range_x=[0, 50000000])
         st.plotly_chart(fig3, use_container_width=True)
+
+elif selected_tab == "Instagram Data":
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        names = instagram_df['instagram name'].dropna()
+        followers = instagram_df['Followers'].dropna()
+        frequencies = dict(zip(names, followers))
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+        generate_wordcloud(frequencies)
+        st.pyplot()
+    
+    with col2:
+        fig2 = px.scatter(instagram_df, x='Authentic engagement', y='Engagement avg',
+                          size='Followers', color='Audience country(mostly)', title="Engagement by Country", height=300)
+        st.plotly_chart(fig2, use_container_width=True)
+    
+    with st.container():
+        fig = px.histogram(instagram_df, x='Followers', title="Distribution of Instagram Followers", height=300, range_x=[0, 100000000])
+        st.plotly_chart(fig, use_container_width=True)
     
 elif selected_tab == "Comparison":
     col1, col2 = st.columns(2)
