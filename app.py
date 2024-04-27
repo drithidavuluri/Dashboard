@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-#from wordcloud import WordCloud
+from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 
 # Setting the page config
@@ -57,13 +57,13 @@ def load_data(filename):
 
     return df
 
-# def generate_wordcloud(data):
-#     wordcloud = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(data)
-#     plt.figure(figsize=(10, 5))
-#     #plt.title('Word Cloud', fontsize=30)
-#     plt.imshow(wordcloud, interpolation='bilinear')
-#     plt.axis('off')
-#     plt.show()
+def generate_wordcloud(data):
+    wordcloud = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(data)
+    plt.figure(figsize=(10, 5))
+    #plt.title('Word Cloud', fontsize=30)
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis('off')
+    plt.show()
 
 # Load data
 instagram_df = load_data("instagram.csv")
@@ -76,11 +76,12 @@ if selected_tab == "Instagram Data":
     col1, col2 = st.columns(2)
     
     with col1:
-        top_instagram_influencers = instagram_df.nlargest(10, 'Followers')  # Get top 10 influencers by follower count
-        fig1 = px.bar(top_instagram_influencers, x='instagram name', y='Followers', height=300,
-                      title="Top 10 Instagram Influencers by Followers", labels={'instagram name': 'Instagram Name', 'Followers': 'Followers'})
-        fig1.update_layout(xaxis_title="Instagram Name", yaxis_title="Number of Followers")
-        st.plotly_chart(fig1, use_container_width=True)
+        names = instagram_df['instagram name'].dropna()
+        followers = instagram_df['Followers'].dropna()
+        frequencies = dict(zip(names, followers))
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+        generate_wordcloud(frequencies)
+        st.pyplot()
     
     with col2:
         fig2 = px.scatter(instagram_df, x='Authentic engagement', y='Engagement avg',
