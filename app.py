@@ -10,7 +10,6 @@ from plotly.subplots import make_subplots
 # Setting the page config
 st.set_page_config(page_title="Social Media Influencer Analysis", layout="wide")
 
-# Custom CSS to reduce padding and margins in the layout and adjust the sidebar width
 def load_css():
     css = """
     <style>
@@ -26,13 +25,10 @@ def load_css():
             margin-bottom: -40px;
             padding-bottom: -40px;
         }
-        /* Adjust the width of the sidebar */
-        .css-18e3th9 {
-            width: 15px;  /* Adjust width as needed */
-        }
     </style>
     """
     st.markdown(css, unsafe_allow_html=True)
+
 
 load_css()
 
@@ -63,6 +59,15 @@ def load_data(filename):
 
     return df
 
+# Function to format the sidebar radio options with icons
+def format_sidebar_options(option):
+    if option == "YouTube Data":
+        return "🎥 " + option
+    elif option == "Instagram Data":
+        return "📷 " + option
+    elif option == "Comparison":
+        return "📊 " + option
+
 def generate_wordcloud(data):
     wordcloud = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(data)
     plt.figure(figsize=(10, 5))
@@ -80,8 +85,13 @@ predictd_youtube=load_data("df_predicted_youtube.csv")
 country_youtube=load_data("country_youtube.csv")
 country_insta=load_data("country_insta.csv")
 
+# Sidebar for tab selection
+selected_tab = st.sidebar.radio(
+    "Choose a tab",
+    ["YouTube Data", "Instagram Data", "Comparison"],
+    format_func=format_sidebar_options
+)
 
-selected_tab = st.sidebar.radio("Choose a tab", ["YouTube Data", "Instagram Data", "Comparison"])
 
 if selected_tab == "YouTube Data":
     col1, col2 = st.columns([2, 3])
@@ -191,7 +201,7 @@ elif selected_tab == "Comparison":
             lon=country_insta['Longitude'],
             text=country_insta['Country'] + ": " + country_insta['Number'].astype(str),
             marker=dict(
-                size=country_insta['Number'] ,  # Dynamically scaled size
+                size=country_insta['Number']*2 ,  # Dynamically scaled size
                 color='blue',
                 line_color='rgb(40,40,40)',
                 line_width=0.5,
@@ -206,7 +216,7 @@ elif selected_tab == "Comparison":
             lon=country_youtube['Longitude'],
             text=country_youtube['Country'] + ": " + country_youtube['Numbers'].astype(str),
             marker=dict(
-                size=country_youtube['Numbers'] ,  # Dynamically scaled size
+                size=country_youtube['Numbers']*2 ,  # Dynamically scaled size
                 color='red',
                 line_color='rgb(40,40,40)',
                 line_width=0.5,
