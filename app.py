@@ -3,17 +3,19 @@ import streamlit as st
 import plotly.express as px
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
 
 # Setting the page config
 st.set_page_config(page_title="Social Media Influencer Analysis", layout="wide")
 
-# Custom CSS to reduce padding and margins in the layout
+# Custom CSS to reduce padding and margins in the layout and adjust the sidebar width
 def load_css():
     css = """
     <style>
         /* Reduce margins and padding globally */
         .main .block-container {
-            
             padding-bottom: 0rem;
         }
         .stMarkdown, .stDataFrame, .stPlotlyChart {
@@ -23,6 +25,10 @@ def load_css():
         .element-container {
             margin-bottom: -40px;
             padding-bottom: -40px;
+        }
+        /* Adjust the width of the sidebar */
+        .css-18e3th9 {
+            width: 15px;  /* Adjust width as needed */
         }
     </style>
     """
@@ -60,17 +66,23 @@ def load_data(filename):
 def generate_wordcloud(data):
     wordcloud = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(data)
     plt.figure(figsize=(10, 5))
-    #plt.title('Word Cloud', fontsize=30)
+    plt.title('Word Cloud', fontsize=20, pad=50, fontweight='bold') 
     plt.imshow(wordcloud, interpolation='bilinear')
     plt.axis('off')
     plt.show()
 
+
 # Load data
 instagram_df = load_data("instagram.csv")
 youtube_df = load_data("youtube.csv")
+predictd_insta=load_data("df_predicted_insta.csv")
+predictd_youtube=load_data("df_predicted_youtube.csv")
+country_youtube=load_data("country_youtube.csv")
+country_insta=load_data("country_insta.csv")
+
 
 # Sidebar for tab selection
-selected_tab = st.sidebar.radio("Choose a tab", ["Instagram Data", "YouTube Data"])
+selected_tab = st.sidebar.radio("Choose a tab", ["Instagram Data", "YouTube Data", "Comparison"])
 
 if selected_tab == "Instagram Data":
     col1, col2 = st.columns(2)
@@ -89,7 +101,7 @@ if selected_tab == "Instagram Data":
         st.plotly_chart(fig2, use_container_width=True)
     
     with st.container():
-        fig = px.histogram(instagram_df, x='Followers', title="Distribution of Instagram Followers")
+        fig = px.histogram(instagram_df, x='Followers', title="Distribution of Instagram Followers", height=300, range_x=[0, 100000000])
         st.plotly_chart(fig, use_container_width=True)
 
 elif selected_tab == "YouTube Data":
@@ -97,7 +109,7 @@ elif selected_tab == "YouTube Data":
     
     with col1:
         top_youtubers = youtube_df.nlargest(10, 'Subscribers')
-        fig4 = px.pie(top_youtubers, names='youtuber name', values='Subscribers', title="Top 10 YouTubers by Subscriber Count")
+        fig4 = px.pie(top_youtubers, names='youtuber name', values='Subscribers', title="Top 10 YouTubers by Subscriber Count", height=350)
         st.plotly_chart(fig4, use_container_width=True)
     
     with col2:
@@ -108,12 +120,116 @@ elif selected_tab == "YouTube Data":
         aggregated_data = filtered_data.groupby(['Category', 'Audience Country']).agg({'Subscribers': 'sum'}).reset_index()
         fig5 = px.density_heatmap(
             aggregated_data, x='Audience Country', y='Category', z='Subscribers', 
-            color_continuous_scale='Viridis', title="Subscribers Heatmap by Category and Country for Top 10 Countries",
-            range_color=[0, 1e9]
+            color_continuous_scale='Viridis', title="Subscribers Heatmap ",
+            range_color=[0, 1e9], height=300
         )
         st.plotly_chart(fig5, use_container_width=True)
     
-    bin_size_yt = st.slider('Select bin size for YouTube Subscribers', min_value=10, max_value=100, value=50, step=5, key='yt_bins')
     with st.container():
-        fig3 = px.histogram(filtered_data, x='Subscribers', nbins=bin_size_yt, title="Distribution of YouTube Subscribers")
+        fig3 = px.histogram(filtered_data, x='Subscribers', title="Distribution of YouTube Subscribers", height=300, range_x=[0, 50000000])
         st.plotly_chart(fig3, use_container_width=True)
+    
+elif selected_tab == "Comparison":
+    col1, col2 = st.columns(2)
+
+    with col1:
+        # Total followers and subscribers for Instagram and YouTube
+        total_instagram_followers = instagram_df['Followers'].sum()
+        total_youtube_subscribers = youtube_df['Subscribers'].sum()
+        comparison_data = {
+            'Platform': ['Instagram', 'YouTube'],
+            'Count': [total_instagram_followers, total_youtube_subscribers]
+        }
+        comparison_df = pd.DataFrame(comparison_data)
+        fig6 = px.bar(comparison_df, x='Platform', y='Count', title="Total Followers/Subscribers Comparison", height=300)
+        st.plotly_chart(fig6, use_container_width=True)
+    
+    with col2:
+        # Prepare data for plotting
+        instagram_data = {
+            "Actual (Log)": predictd_insta['Actual Followers (Log)'],
+            "Predicted (Log)": predictd_insta['Predicted Followers (Log)'],
+            "Platform": "Instagram"
+        }
+        youtube_data = {
+            "Actual (Log)": predictd_youtube['Actual Subscriber (Log)'],
+            "Predicted (Log)": predictd_youtube['Predicted Subscriber (Log)'],
+            "Platform": "YouTube"
+        }
+        
+        # Combine the data into a single DataFrame
+        df_instagram = pd.DataFrame(instagram_data)
+        df_youtube = pd.DataFrame(youtube_data)
+        df_combined = pd.concat([df_instagram, df_youtube], axis=0)
+        
+        # Create a Plotly Express scatter plot
+        fig = px.scatter(df_combined, x='Actual (Log)', y='Predicted (Log)',
+                         color='Platform', labels={'Actual (Log)': 'Actual (Log)', 'Predicted (Log)': 'Predicted (Log)'},
+                         title='Actual vs Predicted Followers/Subscribers (Log)',
+                         hover_data={'Actual (Log)': True, 'Predicted (Log)': True},
+                         template='plotly_white', height=300)
+
+        # Add identity line
+        fig.add_shape(
+            type='line', 
+            line=dict(dash='dash', color='green'),
+            x0=df_combined['Actual (Log)'].min(), y0=df_combined['Actual (Log)'].min(),
+            x1=df_combined['Actual (Log)'].max(), y1=df_combined['Actual (Log)'].max()
+        )
+
+        # Display the plot
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Inside the "Comparison" tab section where the geo scatter plots are created
+
+    with st.container():
+        # Define a scaling factor for better visualization
+        #scale_factor = 1000  # Adjust this value based on your data range and visual preferences
+
+        # Create a scatter geo plot for Instagram
+        trace1 = go.Scattergeo(
+            lat=country_insta['Latitude'],
+            lon=country_insta['Longitude'],
+            text=country_insta['Country'] + ": " + country_insta['Number'].astype(str),
+            marker=dict(
+                size=country_insta['Number'] ,  # Dynamically scaled size
+                color='blue',
+                line_color='rgb(40,40,40)',
+                line_width=0.5,
+                sizemode='area'
+            ),
+            name='Instagram Followers'
+        )
+
+        # Create a scatter geo plot for YouTube
+        trace2 = go.Scattergeo(
+            lat=country_youtube['Latitude'],
+            lon=country_youtube['Longitude'],
+            text=country_youtube['Country'] + ": " + country_youtube['Numbers'].astype(str),
+            marker=dict(
+                size=country_youtube['Numbers'] ,  # Dynamically scaled size
+                color='red',
+                line_color='rgb(40,40,40)',
+                line_width=0.5,
+                sizemode='area'
+            ),
+            name='YouTube Subscribers'
+        )
+
+        # Combine the traces
+        fig = make_subplots(specs=[[{"type": "scattergeo"}]])
+        fig.add_trace(trace1)
+        fig.add_trace(trace2)
+
+        fig.update_layout(
+            title_text='Global Distribution of Instagram Followers and YouTube Subscribers',
+            showlegend=True,
+            geo=dict(
+                showland=True,
+                landcolor='rgb(217, 217, 217)'
+            )
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    
