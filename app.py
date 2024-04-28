@@ -85,6 +85,12 @@ predictd_youtube=load_data("df_predicted_youtube.csv")
 country_youtube=load_data("country_youtube.csv")
 country_insta=load_data("country_insta.csv")
 
+# Calculate quartiles or suitable thresholds
+quantiles = instagram_df['Followers'].quantile([0.25, 0.5, 0.75])
+low, medium, high = quantiles[0.25], quantiles[0.5], quantiles[0.75]
+very_high = instagram_df['Followers'].max()
+
+
 # Sidebar for tab selection
 selected_tab = st.sidebar.radio(
     "Choose a tab",
@@ -115,8 +121,44 @@ if selected_tab == "YouTube Data":
         st.plotly_chart(fig5, use_container_width=True)
     
     with st.container():
-        fig3 = px.histogram(filtered_data, x='Subscribers', title="Distribution of YouTube Subscribers", height=300, range_x=[0, 50000000])
-        st.plotly_chart(fig3, use_container_width=True)
+        col_a, col_b = st.columns([3, 1])
+        with col_a:
+            fig3 = px.histogram(filtered_data, x='Subscribers', title="Distribution of YouTube Subscribers", height=300, range_x=[0, 50000000])
+            st.plotly_chart(fig3, use_container_width=True)
+        
+        with col_b:
+        # Define the range maximum as 50M for the gauge chart
+            upper_limit = 50000000
+            
+            # Calculate quantiles based on the limited range
+            quantiles = youtube_df['Subscribers'].clip(upper=upper_limit).quantile([0.25, 0.5, 0.75])
+            low, medium, high = quantiles[0.25], quantiles[0.5], quantiles[0.75]
+            very_high = upper_limit  # Setting the upper limit for the gauge
+            
+            mean_subscribers = youtube_df['Subscribers'].mean()
+            
+            fig = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=mean_subscribers,
+                title={'text': "Average Subscribers"},
+                gauge={
+                    'axis': {'range': [None, very_high]},
+                    'bar': {'color': "lightgrey"},
+                    'steps': [
+                        {'range': [0, low], 'color': "lightblue"},   # Lightest blue for low values
+                        {'range': [low, medium], 'color': "deepskyblue"},  # Medium light blue
+                        {'range': [medium, high], 'color': "dodgerblue"}, # Deeper blue
+                        {'range': [high, very_high], 'color': "darkblue"}
+                    ],
+                    'threshold': {
+                        'line': {'color': "navy", 'width': 4},
+                        'thickness': 0.75,
+                        'value': mean_subscribers
+                    }
+                }
+            ))
+            fig.update_layout(height=250)
+            st.plotly_chart(fig, use_container_width=True)
 
 elif selected_tab == "Instagram Data":
     col1, col2 = st.columns(2)
@@ -134,8 +176,43 @@ elif selected_tab == "Instagram Data":
                           size='Followers', color='Audience country(mostly)', title="Engagement by Country", height=300)
         st.plotly_chart(fig2, use_container_width=True)
     
-    with st.container():
-        fig = px.histogram(instagram_df, x='Followers', title="Distribution of Instagram Followers", height=300, range_x=[0, 100000000])
+    st.container()
+    col_a, col_b = st.columns([3, 1])
+    with col_a:
+        fig = px.histogram(instagram_df, x='Followers', title="Distribution of Instagram Followers", height=300, range_x=[0, 50000000])
+        st.plotly_chart(fig, use_container_width=True)
+    
+    with col_b:
+        upper_limit = 50000000
+        quantiles = instagram_df['Followers'].clip(upper=upper_limit).quantile([0.25, 0.5, 0.75])
+        low, medium, high = quantiles[0.25], quantiles[0.5], quantiles[0.75]
+        very_high = upper_limit
+        
+        mean_followers = instagram_df['Followers'].mean()
+        
+        fig = go.Figure(go.Indicator(
+            mode="gauge+number+delta",
+            value=mean_followers,
+            number={'suffix': " followers"},
+            delta={'reference': mean_followers},
+            title={'text': "Average Followers"},
+            gauge={
+                'axis': {'range': [None, very_high]},
+                'bar': {'color': "lightgray"},
+                'steps': [
+                    {'range': [0, low], 'color': "lightblue"},   # Lightest blue for low values
+                    {'range': [low, medium], 'color': "deepskyblue"},  # Medium light blue
+                    {'range': [medium, high], 'color': "dodgerblue"}, # Deeper blue
+                    {'range': [high, very_high], 'color': "darkblue"}  # Darkest blue for highest values
+                ],
+                'threshold': {
+                    'line': {'color': "navy", 'width': 1},
+                    'thickness': 0.75,
+                    'value': mean_followers
+                }
+            }
+        ))
+        fig.update_layout(height=250)
         st.plotly_chart(fig, use_container_width=True)
     
 elif selected_tab == "Comparison":
