@@ -2,19 +2,16 @@
 
 This is a Streamlit app that provides an interactive dashboard for analyzing social media influencers' data from Instagram and YouTube. The app allows users to explore and visualize various metrics related to followers, engagement, and other relevant statistics. It also includes machine learning models to predict follower/subscriber counts based on engagement metrics.
 
-
 ## Features
 
 - YouTube Data: Visualize top YouTubers by subscriber count, distribution of subscribers, and a heatmap of subscribers across categories and countries.
 - Instagram Data: Explore a word cloud of influencers' names sized by their follower count, engagement metrics by country, and the distribution of followers.
 - Comparison: Compare the total follower/subscriber count between Instagram and YouTube, visualize actual vs. predicted follower/subscriber values using machine learning models, and view a global distribution map of followers/subscribers.
 
-
 ## Installation
 
 1. Clone the repository: https://github.com/drithidavuluri/Dashboard
 2. Install the required dependencies: pip install -r requirements.txt
-
 
 ## Usage
 
@@ -22,7 +19,6 @@ This is a Streamlit app that provides an interactive dashboard for analyzing soc
 2. The app will open in your default web browser. If not, you can access it by clicking the URL provided in the terminal output.
 3. Use the sidebar to navigate between the different tabs: "YouTube Data", "Instagram Data", and "Comparison".
 4. Explore the various visualizations and interact with the plots by hovering over data points or zooming in/out.
-
 
 ## Data
 
@@ -35,7 +31,6 @@ The app uses the following data files:
 - `country_youtube.csv`: Contains the number of YouTubers and their geographic coordinates for each country.
 - `country_insta.csv`: Contains the number of Instagram influencers and their geographic coordinates for each country.
 
-
 ## Machine Learning Models
 
 The project includes two machine learning models implemented using scikit-learn's Random Forest Regressor:
@@ -44,7 +39,6 @@ The project includes two machine learning models implemented using scikit-learn'
 2. YouTube Subscriber Prediction: This model uses the "avg views", "avg likes", and "avg comments" features to predict the number of subscribers for YouTube influencers.
 
 The models are trained and optimized using Grid Search Cross-Validation, and the best model parameters are selected based on the R-squared metric.
-
 
 ## Code Files
 
@@ -57,7 +51,6 @@ The models are trained and optimized using Grid Search Cross-Validation, and the
 - Visualizations were created with [Plotly](https://plotly.com/python/) and [Matplotlib](https://matplotlib.org/).
 - Machine learning models were implemented using [scikit-learn](https://scikit-learn.org/).
 
+### Github repo link - https://github.com/drithidavuluri/Dashboard
 
-# Github repo link -  https://github.com/drithidavuluri/Dashboard
-
-# Link to deployed web page - https://dashboard-9g6sbpmafzempgwtu7fqcj.streamlit.app/
+### Link to deployed web page - https://dashboard-9g6sbpmafzempgwtu7fqcj.streamlit.app/
