@@ -6,8 +6,6 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-
-# Setting the page config
 st.set_page_config(page_title="Social Media Influencer Analysis", layout="wide")
 
 def load_css():
@@ -59,7 +57,6 @@ def load_data(filename):
 
     return df
 
-# Function to format the sidebar radio options with icons
 def format_sidebar_options(option):
     if option == "YouTube Data":
         return "🎥 " + option
@@ -76,8 +73,6 @@ def generate_wordcloud(data):
     plt.axis('off')
     plt.show()
 
-
-# Load data
 instagram_df = load_data("instagram.csv")
 youtube_df = load_data("youtube.csv")
 predictd_insta=load_data("df_predicted_insta.csv")
@@ -85,13 +80,10 @@ predictd_youtube=load_data("df_predicted_youtube.csv")
 country_youtube=load_data("country_youtube.csv")
 country_insta=load_data("country_insta.csv")
 
-# Calculate quartiles or suitable thresholds
 quantiles = instagram_df['Followers'].quantile([0.25, 0.5, 0.75])
 low, medium, high = quantiles[0.25], quantiles[0.5], quantiles[0.75]
 very_high = instagram_df['Followers'].max()
 
-
-# Sidebar for tab selection
 selected_tab = st.sidebar.radio(
     "Choose a tab",
     ["YouTube Data", "Instagram Data", "Comparison"],
@@ -127,13 +119,12 @@ if selected_tab == "YouTube Data":
             st.plotly_chart(fig3, use_container_width=True)
         
         with col_b:
-        # Define the range maximum as 50M for the gauge chart
+        
             upper_limit = 50000000
             
-            # Calculate quantiles based on the limited range
             quantiles = youtube_df['Subscribers'].clip(upper=upper_limit).quantile([0.25, 0.5, 0.75])
             low, medium, high = quantiles[0.25], quantiles[0.5], quantiles[0.75]
-            very_high = upper_limit  # Setting the upper limit for the gauge
+            very_high = upper_limit 
             
             mean_subscribers = youtube_df['Subscribers'].mean()
             
@@ -145,9 +136,9 @@ if selected_tab == "YouTube Data":
                     'axis': {'range': [None, very_high]},
                     'bar': {'color': "lightgrey"},
                     'steps': [
-                        {'range': [0, low], 'color': "lightblue"},   # Lightest blue for low values
-                        {'range': [low, medium], 'color': "deepskyblue"},  # Medium light blue
-                        {'range': [medium, high], 'color': "dodgerblue"}, # Deeper blue
+                        {'range': [0, low], 'color': "lightblue"},  
+                        {'range': [low, medium], 'color': "deepskyblue"}, 
+                        {'range': [medium, high], 'color': "dodgerblue"},
                         {'range': [high, very_high], 'color': "darkblue"}
                     ],
                     'threshold': {
@@ -200,10 +191,10 @@ elif selected_tab == "Instagram Data":
                 'axis': {'range': [None, very_high]},
                 'bar': {'color': "lightgray"},
                 'steps': [
-                    {'range': [0, low], 'color': "lightblue"},   # Lightest blue for low values
-                    {'range': [low, medium], 'color': "deepskyblue"},  # Medium light blue
-                    {'range': [medium, high], 'color': "dodgerblue"}, # Deeper blue
-                    {'range': [high, very_high], 'color': "darkblue"}  # Darkest blue for highest values
+                    {'range': [0, low], 'color': "lightblue"},  
+                    {'range': [low, medium], 'color': "deepskyblue"}, 
+                    {'range': [medium, high], 'color': "dodgerblue"},
+                    {'range': [high, very_high], 'color': "darkblue"}  
                 ],
                 'threshold': {
                     'line': {'color': "navy", 'width': 1},
@@ -219,7 +210,6 @@ elif selected_tab == "Comparison":
     col1, col2 = st.columns(2)
 
     with col1:
-        # Total followers and subscribers for Instagram and YouTube
         total_instagram_followers = instagram_df['Followers'].sum()
         total_youtube_subscribers = youtube_df['Subscribers'].sum()
         comparison_data = {
@@ -231,7 +221,6 @@ elif selected_tab == "Comparison":
         st.plotly_chart(fig6, use_container_width=True)
     
     with col2:
-        # Prepare data for plotting
         instagram_data = {
             "Actual (Log)": predictd_insta['Actual Followers (Log)'],
             "Predicted (Log)": predictd_insta['Predicted Followers (Log)'],
@@ -243,19 +232,16 @@ elif selected_tab == "Comparison":
             "Platform": "YouTube"
         }
         
-        # Combine the data into a single DataFrame
         df_instagram = pd.DataFrame(instagram_data)
         df_youtube = pd.DataFrame(youtube_data)
         df_combined = pd.concat([df_instagram, df_youtube], axis=0)
         
-        # Create a Plotly Express scatter plot
         fig = px.scatter(df_combined, x='Actual (Log)', y='Predicted (Log)',
                          color='Platform', labels={'Actual (Log)': 'Actual (Log)', 'Predicted (Log)': 'Predicted (Log)'},
                          title='Actual vs Predicted Followers/Subscribers (Log)',
                          hover_data={'Actual (Log)': True, 'Predicted (Log)': True},
                          template='plotly_white', height=300)
 
-        # Add identity line
         fig.add_shape(
             type='line', 
             line=dict(dash='dash', color='green'),
@@ -263,22 +249,16 @@ elif selected_tab == "Comparison":
             x1=df_combined['Actual (Log)'].max(), y1=df_combined['Actual (Log)'].max()
         )
 
-        # Display the plot
         st.plotly_chart(fig, use_container_width=True)
 
-    # Inside the "Comparison" tab section where the geo scatter plots are created
-
     with st.container():
-        # Define a scaling factor for better visualization
-        #scale_factor = 1000  # Adjust this value based on your data range and visual preferences
-
-        # Create a scatter geo plot for Instagram
+        
         trace1 = go.Scattergeo(
             lat=country_insta['Latitude'],
             lon=country_insta['Longitude'],
             text=country_insta['Country'] + ": " + country_insta['Number'].astype(str),
             marker=dict(
-                size=country_insta['Number']*2 ,  # Dynamically scaled size
+                size=country_insta['Number']*2 ,  
                 color='blue',
                 line_color='rgb(40,40,40)',
                 line_width=0.5,
@@ -287,13 +267,12 @@ elif selected_tab == "Comparison":
             name='Instagram Followers'
         )
 
-        # Create a scatter geo plot for YouTube
         trace2 = go.Scattergeo(
             lat=country_youtube['Latitude'],
             lon=country_youtube['Longitude'],
             text=country_youtube['Country'] + ": " + country_youtube['Numbers'].astype(str),
             marker=dict(
-                size=country_youtube['Numbers']*2 ,  # Dynamically scaled size
+                size=country_youtube['Numbers']*2 , 
                 color='red',
                 line_color='rgb(40,40,40)',
                 line_width=0.5,
@@ -302,7 +281,6 @@ elif selected_tab == "Comparison":
             name='YouTube Subscribers'
         )
 
-        # Combine the traces
         fig = make_subplots(specs=[[{"type": "scattergeo"}]])
         fig.add_trace(trace1)
         fig.add_trace(trace2)
